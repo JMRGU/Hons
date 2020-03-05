@@ -19,11 +19,13 @@ contract Proof_of_Concept {
     }
     
     mapping(address => Bettor) public bettorInfo;
+    
     function() external payable {}
     
     constructor() public {
         owner = msg.sender;
-        minimumBet = 100000000000000; // this is in wei = 1 ether I think?
+        minimumBet = 100000000000000; // this is in wei = 0.0001 ether - TODO: must find out typical transaction sizes in ether to determine reasonable betting amounts
+        // TODO: should consider putting in a maximum too
     }
     
     function kill() public {
@@ -44,6 +46,8 @@ contract Proof_of_Concept {
         
         bettorInfo[msg.sender].wager = msg.value;
         bettorInfo[msg.sender].outcome = _outcome;
+        
+        bettors.push(msg.sender); // push new bettor address to the list thereof
         
         //assign bet
         _outcome == 1 ? totalPlacedA += msg.value : totalPlacedB += msg.value;
@@ -72,7 +76,7 @@ contract Proof_of_Concept {
             }
         }
         
-        emit Count(count);
+        emit CountDebug(count);
         
         if (winner == 1){
             loserBet = totalPlacedB;
@@ -88,7 +92,7 @@ contract Proof_of_Concept {
                 addr = winners[j];
                 bet = bettorInfo[addr].wager;
                 // determine winnings and pay out
-                prize = (bet*(10000 + (loserBet * 1000/winnerBet)))/10000;
+                prize = (bet*(10000 + (loserBet * 10000/winnerBet)))/10000;
                 winners[j].transfer(prize); // try out various reward systems
                 emit PayOut(addr, bet, prize);
             }
@@ -123,5 +127,5 @@ contract Proof_of_Concept {
      event ContestComplete(uint outcome, uint win_amount, uint lose_amount);
      event PayOut(address bettor, uint initial_wager, uint winnings);
      event ScanningForWinners(string msg);
-     event Count(uint count);
+     event CountDebug(uint count);
 }
